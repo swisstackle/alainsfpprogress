@@ -6,6 +6,10 @@
 *{box-sizing:border-box}
 body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;line-height:1.4;margin:0;padding:20px;background:#fafafa;color:#111}
 header{max-width:var(--max-width);margin:0 auto 18px}
+.topnav{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.topnav .brand{font-weight:700;text-decoration:none;color:inherit}
+.topnav .links a{margin-left:12px;text-decoration:none;color:var(--muted)}
+.topnav .links a[aria-current="page"]{color:#111;font-weight:600}
 .lead{color:var(--muted);margin-top:6px}
 .grid{max-width:var(--max-width);margin:0 auto;display:grid;grid-template-columns:1fr;gap:var(--gap)}
 .exercise h2{margin:0 0 8px;font-size:1.1rem}
@@ -15,6 +19,9 @@ canvas{width:100%!important;height:300px!important}
 .video-wrap iframe{width:100%;height:180px;border-radius:6px}
 .caption{font-size:0.85rem;color:var(--muted);margin-bottom:6px}
 footer{max-width:var(--max-width);margin:18px auto 0;color:var(--muted)}
+
+.content{max-width:var(--max-width);margin:0 auto;padding:6px}
+.content article{background:#fff;padding:18px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
 
 @media (max-width:900px){
   .card{grid-template-columns:1fr;}
