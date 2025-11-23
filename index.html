@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Alain's Functionalpatterns Progress</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="assets/favicon.ico">
+</head>
+<body>
+  <header>
+    <h1>Alain's Functionalpatterns Progress</h1>
+    <p class="lead">Tracking broad jump, vertical jump, sprint top speed, and max throwing velocity.</p>
+  </header>
+
+  <main class="grid">
+    <section class="exercise" data-exercise="broad_jump">
+      <h2>Broad Jump</h2>
+      <div class="card">
+        <canvas id="chart-broad_jump" aria-label="Broad jump progress chart" role="img"></canvas>
+        <div class="video-wrap">
+          <div class="caption">Latest video</div>
+          <iframe id="video-broad_jump" src="" title="Broad jump video" frameborder="0" allowfullscreen></iframe>
+        </div>
+      </div>
+    </section>
+
+    <section class="exercise" data-exercise="vertical_jump">
+      <h2>Vertical Jump</h2>
+      <div class="card">
+        <canvas id="chart-vertical_jump" aria-label="Vertical jump progress chart" role="img"></canvas>
+        <div class="video-wrap">
+          <div class="caption">Latest video</div>
+          <iframe id="video-vertical_jump" src="" title="Vertical jump video" frameborder="0" allowfullscreen></iframe>
+        </div>
+      </div>
+    </section>
+
+    <section class="exercise" data-exercise="sprint_top_speed">
+      <h2>Sprint Top Speed</h2>
+      <div class="card">
+        <canvas id="chart-sprint_top_speed" aria-label="Sprint top speed progress chart" role="img"></canvas>
+        <div class="video-wrap">
+          <div class="caption">Latest video</div>
+          <iframe id="video-sprint_top_speed" src="" title="Sprint top speed video" frameborder="0" allowfullscreen></iframe>
+        </div>
+      </div>
+    </section>
+
+    <section class="exercise" data-exercise="max_throw_velocity">
+      <h2>Max Throwing Velocity</h2>
+      <div class="card">
+        <canvas id="chart-max_throw_velocity" aria-label="Max throwing velocity progress chart" role="img"></canvas>
+        <div class="video-wrap">
+          <div class="caption">Latest video</div>
+          <iframe id="video-max_throw_velocity" src="" title="Max throwing velocity video" frameborder="0" allowfullscreen></iframe>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <small>Data driven from <code>data.csv</code>. Update CSV to add measurements or change videos.</small>
+  </footer>
+
+  <!-- Libraries: Chart.js + PapaParse (CSV parser) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
