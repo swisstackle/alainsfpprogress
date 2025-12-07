@@ -16,6 +16,8 @@ app.use(express.static(PUBLIC));
 // Simple in-memory cache to reduce Google fetches
 const CACHE_TTL_MS = Number(process.env.CACHE_TTL_MS) || 60 * 1000; // 1 minute default
 let cached = { ts: 0, data: null };
+// Separate cache for DATA_SOURCE_URL CSV text
+let csvCache = { ts: 0, text: null };
 
 function fetchText(url, timeout = 10000) {
   return new Promise((resolve, reject) => {
@@ -45,39 +47,25 @@ function fetchText(url, timeout = 10000) {
 }
 
 async function listPublicDriveFolder(folderId) {
-  // Access the public folder page and scrape file IDs and names.
-  // The public folder page contains a JSON blob or data attributes — we'll use a regex fallback.
-  const folderUrl = `https://drive.google.com/drive/folders/${folderId}`;
-  const html = await fetchText(folderUrl);
-  const results = [];
-
-  // Try to find file IDs using a regex for "/file/d/<id>"
-  const fileRegex = /\/file\/d\/([a-zA-Z0-9_-]{10,})\/[^"'<>]*/g;
-  const seen = new Set();
-  let m;
-  while ((m = fileRegex.exec(html)) !== null) {
-    const id = m[1];
-    if (seen.has(id)) continue;
-    seen.add(id);
-    results.push({ id });
+  const apiKey = process.env.GDRIVE_API_KEY;
+  if (!apiKey) {
+    throw new Error('GDRIVE_API_KEY not set — Drive API listing required');
   }
 
-  // Also look for "drive-item" entries that include name text
-  const nameRegex = /\"title\":\s*\"([^\"]+)\",\s*\"id\":\s*\"([a-zA-Z0-9_-]{10,})\"/g;
-  while ((m = nameRegex.exec(html)) !== null) {
-    const name = m[1];
-    const id = m[2];
-    if (!seen.has(id)) {
-      seen.add(id);
-      results.push({ id, name });
-    } else {
-      // attach name if we already have the id
-      const existing = results.find(r => r.id === id);
-      if (existing && !existing.name) existing.name = name;
-    }
-  }
+  const files = [];
+  let pageToken = null;
+  // Query: files that have the folder as parent and are not trashed
+  const q = `'${folderId}'+in+parents+and+trashed=false`;
+  do {
+    const url = `https://www.googleapis.com/drive/v3/files?pageSize=1000&q=${encodeURIComponent(q)}&fields=nextPageToken,files(id,name,mimeType)&key=${apiKey}` + (pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : '');
+    const body = await fetchText(url);
+    const json = JSON.parse(body);
+    const batch = (json.files || []).map(f => ({ id: f.id, name: f.name, mimeType: f.mimeType }));
+    files.push(...batch);
+    pageToken = json.nextPageToken;
+  } while (pageToken);
 
-  return results;
+  return files;
 }
 
 async function fetchCsvExportForFileId(fileId) {
@@ -98,6 +86,27 @@ async function fetchCsvExportForFileId(fileId) {
     }
   }
 }
+
+async function fetchDataSourceCsv() {
+  const dataUrl = process.env.DATA_SOURCE_URL;
+  if (!dataUrl) throw new Error('DATA_SOURCE_URL not set');
+  const now = Date.now();
+  if (csvCache.text && (now - csvCache.ts) < CACHE_TTL_MS) return csvCache.text;
+  const text = await fetchText(dataUrl);
+  csvCache = { ts: now, text };
+  return text;
+}
+
+app.get('/data.csv', async (req, res) => {
+  try {
+    const csv = await fetchDataSourceCsv();
+    res.set('Content-Type', 'text/csv');
+    res.send(csv);
+  } catch (err) {
+    console.error('Failed to fetch DATA_SOURCE_URL csv', err.message || err);
+    res.status(502).json({ error: 'failed to fetch data source' });
+  }
+});
 
 async function buildExercisesFromDrive(folderId) {
   const entries = await listPublicDriveFolder(folderId);
@@ -153,16 +162,37 @@ app.get('/api/exercises', async (req, res) => {
       return res.json(cached.data);
     }
 
-    const folderId = process.env.GDRIVE_FOLDER_ID;
+    const dataSourceUrl = process.env.DATA_SOURCE_URL;
     let exercises = [];
-    if (folderId) {
+    if (dataSourceUrl) {
       try {
-        exercises = await buildExercisesFromDrive(folderId);
+        const csvText = await fetchDataSourceCsv();
+        const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
+        const rows = parsed.data || [];
+        // Group rows by exercise
+        const groups = new Map();
+        for (const r of rows) {
+          const key = (r.exercise || '').trim();
+          if (!key) continue;
+          if (!groups.has(key)) groups.set(key, []);
+          groups.get(key).push(r);
+        }
+        for (const [key, groupRows] of groups.entries()) {
+          // extract label/units from groupRows
+          let label = null, units = null;
+          for (const r of groupRows) {
+            if (r.label && r.label.trim()) label = label || r.label.trim();
+            if (r.units && r.units.trim()) units = units || r.units.trim();
+            if (label && units) break;
+          }
+          exercises.push({ key, file: '/data.csv', url: dataSourceUrl, label: label || null, units: units || null });
+        }
       } catch (err) {
-        console.error('Drive folder scraping failed, falling back to local CSVs', err);
+        console.error('Failed to build manifest from DATA_SOURCE_URL, falling back to local CSVs', err);
         exercises = await buildExercisesFromLocal();
       }
     } else {
+      // No DATA_SOURCE_URL configured: use local CSV files only
       exercises = await buildExercisesFromLocal();
     }
 
