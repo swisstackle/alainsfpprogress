@@ -16,8 +16,7 @@ app.use(express.static(PUBLIC));
 // Simple in-memory cache to reduce Google fetches
 const CACHE_TTL_MS = Number(process.env.CACHE_TTL_MS) || 60 * 1000; // 1 minute default
 let cached = { ts: 0, data: null };
-// Separate cache for DATA_SOURCE_URL CSV text
-let csvCache = { ts: 0, text: null };
+// No CSV cache: always fetch fresh DATA_SOURCE_URL content
 
 function fetchText(url, timeout = 10000) {
   return new Promise((resolve, reject) => {
@@ -90,10 +89,7 @@ async function fetchCsvExportForFileId(fileId) {
 async function fetchDataSourceCsv() {
   const dataUrl = process.env.DATA_SOURCE_URL;
   if (!dataUrl) throw new Error('DATA_SOURCE_URL not set');
-  const now = Date.now();
-  if (csvCache.text && (now - csvCache.ts) < CACHE_TTL_MS) return csvCache.text;
   const text = await fetchText(dataUrl);
-  csvCache = { ts: now, text };
   return text;
 }
 
