@@ -13,10 +13,7 @@ const PUBLIC = path.join(__dirname);
 
 app.use(express.static(PUBLIC));
 
-// Simple in-memory cache to reduce Google fetches
-const CACHE_TTL_MS = Number(process.env.CACHE_TTL_MS) || 60 * 1000; // 1 minute default
-let cached = { ts: 0, data: null };
-// No CSV cache: always fetch fresh DATA_SOURCE_URL content
+// No persistent cache: always fetch fresh DATA_SOURCE_URL content
 
 function fetchText(url, timeout = 10000) {
   return new Promise((resolve, reject) => {
@@ -104,29 +101,6 @@ app.get('/data.csv', async (req, res) => {
   }
 });
 
-async function buildExercisesFromDrive(folderId) {
-  const entries = await listPublicDriveFolder(folderId);
-  const exercises = [];
-  for (const e of entries) {
-    try {
-      const csvText = await fetchCsvExportForFileId(e.id);
-      const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
-      const rows = parsed.data || [];
-      let label = null, units = null;
-      for (const r of rows) {
-        if (r.label && r.label.trim()) label = label || r.label.trim();
-        if (r.units && r.units.trim()) units = units || r.units.trim();
-        if (label && units) break;
-      }
-      const key = e.name ? e.name.replace(/\s+/g, '_').toLowerCase() : e.id;
-      exercises.push({ key, file: `${e.id}.csv`, url: `https://docs.google.com/spreadsheets/d/${e.id}/export?format=csv&gid=0`, label: label || null, units: units || null });
-    } catch (err) {
-      console.warn(`Skipping file ${e.id} - failed to fetch/parse:`, err.message || err);
-    }
-  }
-  return exercises;
-}
-
 async function buildExercisesFromLocal() {
   const files = await fs.promises.readdir(PUBLIC);
   const csvFiles = files.filter(f => f.toLowerCase().endsWith('.csv'));
@@ -153,11 +127,6 @@ async function buildExercisesFromLocal() {
 
 app.get('/api/exercises', async (req, res) => {
   try {
-    const now = Date.now();
-    if (cached.data && (now - cached.ts) < CACHE_TTL_MS) {
-      return res.json(cached.data);
-    }
-
     const dataSourceUrl = process.env.DATA_SOURCE_URL;
     let exercises = [];
     if (dataSourceUrl) {
@@ -192,8 +161,6 @@ app.get('/api/exercises', async (req, res) => {
       exercises = await buildExercisesFromLocal();
     }
 
-    // update cache
-    cached = { ts: now, data: exercises };
     res.json(exercises);
   } catch (err) {
     console.error('Failed to build exercises.json', err);
