@@ -1,24 +1,5 @@
 # Alain's Functionalpatterns Progress
 
-**Overview**
-- **Purpose**: Single-page static frontend that graphs training measurements and shows the latest video per exercise.
-- **Stack**: Static site (`index.html`, `styles.css`, `app.js`) + optional Node.js helper server (`server.js`) to provide a manifest and proxy a remote CSV source.
-
-**Architecture**
-- **Frontend**: `index.html` + `app.js` parse CSV(s), render charts with Chart.js, and embed YouTube videos. The frontend prefers a server manifest at `GET /api/exercises` but can work with local CSV files.
-- **Server**: `server.js` is an Express app that serves static files and exposes two helpful endpoints:
-	- `GET /api/exercises`: returns a manifest (array) of available exercises. The server builds this from either a remote `DATA_SOURCE_URL` CSV (grouped by `exercise`) or local `*.csv` files in the project root.
-	- `GET /data.csv`: proxies the configured `DATA_SOURCE_URL` (if set) so the frontend can fetch it as a local path.
-
-**CSV usage modes**
-You can provide data in two supported ways – pick one that fits your workflow.
-
-- **Single grouped CSV** (`data.csv` or any remote URL set in `DATA_SOURCE_URL`)
-	- Header columns (recommended): `exercise,ts,value,units,youtubeId,label`
-	- `exercise`: logical key used to group rows (example: `broad_jump`).
-	- `ts` / `date` / `timestamp`: ISO date or timestamp (e.g. `2025-06-12` or full ISO string).
-	# Alain's Functionalpatterns Progress
-
 	This project is a dynamic, data-driven progress site that renders charts and the latest video per exercise by fetching a single grouped CSV. A small Node.js Express server (`server.js`) serves the frontend and helps build a manifest and proxy remote CSVs exported from Google Sheets / Google Drive.
 
 	## Overview
