@@ -1,15 +1,4 @@
-# Alain's Functionalpatterns Progress
 
-This project is a dynamic, data-driven progress site that renders charts and the latest video per exercise by fetching a single grouped CSV. A small Node.js Express server (`server.js`) serves the frontend and helps build a manifest and proxy remote CSVs exported from Google Sheets / Google Drive.
-
-## Overview
-	- Frontend: `index.html` + `app.js` fetch a manifest from `GET /api/exercises`, then fetch the grouped CSV (typically proxied at `/data.csv`) and render charts per exercise.
-	- Server: `server.js` fetches the CSV at `DATA_SOURCE_URL` (when configured) and builds the manifest; if the remote CSV is unavailable, the server falls back to a local `data.csv` file.
-
-## How data flows
-	1. If `DATA_SOURCE_URL` is set, `server.js` fetches that single grouped CSV and parses it. It groups rows by the `exercise` column and builds the `/api/exercises` manifest. Manifest entries include `key`, `file` (typically `/data.csv`), `url`, and optional metadata `label` and `units` discovered from CSV rows.
-	2. If fetching/parsing `DATA_SOURCE_URL` fails, the server falls back to a local `data.csv` file in the project root (if present) and builds the manifest from that single file.
-	3. The frontend fetches the manifest and then fetches the grouped CSV (proxied at `/data.csv`) and groups rows client-side by exercise to render charts and set the latest video iframe per exercise.
 # Alain's Functionalpatterns Progress
 
 This project is a dynamic, data-driven progress site that renders charts and the latest video per exercise by fetching a single grouped CSV. A small Node.js Express server (`server.js`) serves the frontend and helps build a manifest and proxy remote CSVs exported from Google Sheets / Google Drive.
