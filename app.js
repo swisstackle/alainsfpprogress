@@ -245,7 +245,7 @@ function renderExerciseFromGrouped(key, grouped, meta){
         a.rel = 'noopener';
         // format: DATE - VALUE UNIT
         let dateText = '';
-        try{ const d = new Date(row.ts); if(!isNaN(d)){ const mm = String(d.getMonth()+1).padStart(2,'0'); const dd = String(d.getDate()).padStart(2,'0'); const yyyy = d.getFullYear(); dateText = `${mm}/${dd}/${yyyy}`; } }catch(e){}
+        try{ const d = new Date(row.ts); if(!isNaN(d.getTime())){ const mm = String(d.getMonth()+1).padStart(2,'0'); const dd = String(d.getDate()).padStart(2,'0'); const yyyy = d.getFullYear(); dateText = `${mm}/${dd}/${yyyy}`; } }catch(e){}
         const valueText = (row.value !== undefined && row.value !== null) ? String(row.value) : '';
         const labelText = (dateText ? dateText + ' - ' : '') + valueText + (meta?.units ? ' ' + meta.units : '');
         a.textContent = labelText;
