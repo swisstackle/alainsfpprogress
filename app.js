@@ -220,8 +220,27 @@ function renderExerciseFromGrouped(key, grouped, meta){
       iframe.src = '';
     }
 
-    const listEl = document.getElementById(`video-list-${key}`);
+    // locate or create the list element inside the video's parent wrap
+    let listEl = document.getElementById(`video-list-${key}`);
+    const videoWrapEl = iframe ? iframe.parentElement : null;
+    if(!listEl && videoWrapEl){
+      listEl = document.createElement('ul');
+      listEl.id = `video-list-${key}`;
+      listEl.className = 'video-list';
+      listEl.style.marginTop = '8px';
+      videoWrapEl.appendChild(listEl);
+    }
     if(listEl){
+      // ensure a title above the list
+      const container = listEl.parentElement || videoWrapEl;
+      let titleEl = container.querySelector('.video-list-title');
+      if(!titleEl){
+        titleEl = document.createElement('div');
+        titleEl.className = 'video-list-title';
+        titleEl.textContent = 'Old datapoints';
+        container.insertBefore(titleEl, listEl);
+      }
+
       listEl.innerHTML = '';
       let latestIndex = -1;
       for(let i = data.length - 1; i >= 0; i--) if(data[i].youtubeId){ latestIndex = i; break; }
@@ -234,8 +253,11 @@ function renderExerciseFromGrouped(key, grouped, meta){
         a.href = href;
         a.target = '_blank';
         a.rel = 'noopener';
+        // format: DATE - VALUE UNIT
+        let dateText = '';
+        try{ const d = new Date(row.ts); if(!isNaN(d)) dateText = d.toLocaleDateString(); }catch(e){}
         const valueText = (row.value !== undefined && row.value !== null) ? String(row.value) : '';
-        const labelText = valueText + (meta?.units ? ' - ' + meta.units : '');
+        const labelText = (dateText ? dateText + ' - ' : '') + valueText + (meta?.units ? ' ' + meta.units : '');
         a.textContent = labelText;
         const li = document.createElement('li');
         li.appendChild(a);
