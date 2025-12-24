@@ -88,6 +88,11 @@ function ensureSectionForExercise(key, meta){
   iframe.setAttribute('frameborder','0');
   iframe.setAttribute('allowfullscreen','');
   videoWrap.appendChild(iframe);
+  const list = document.createElement('ul');
+  list.id = `video-list-${key}`;
+  list.className = 'video-list';
+  list.style.marginTop = '8px';
+  videoWrap.appendChild(list);
 
   card.appendChild(videoWrap);
   section.appendChild(card);
@@ -213,6 +218,34 @@ function renderExerciseFromGrouped(key, grouped, meta){
     } else {
       console.log(`[app] clearing iframe.src for key=${key} (no valid link)`);
       iframe.src = '';
+    }
+
+    // locate the list element inside the video's parent wrap (created in ensureSectionForExercise)
+    let listEl = document.getElementById(`video-list-${key}`);
+    if(listEl){
+      listEl.innerHTML = '';
+      let latestIndex = -1;
+      for(let i = data.length - 1; i >= 0; i--) if(data[i].youtubeId){ latestIndex = i; break; }
+      for(let i = 0; i < data.length; i++){
+        const row = data[i];
+        if(!row.youtubeId) continue;
+        if(i === latestIndex) continue; // skip latest shown in iframe
+        const href = (/^https?:\/\//i.test(row.youtubeId)) ? row.youtubeId : `https://www.youtube.com/watch?v=${row.youtubeId}`;
+        const a = document.createElement('a');
+        a.href = href;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        // format: DATE - VALUE UNIT
+        let dateText = '';
+        try{ const d = new Date(row.ts); if(!isNaN(d.getTime())){ const mm = String(d.getMonth()+1).padStart(2,'0'); const dd = String(d.getDate()).padStart(2,'0'); const yyyy = d.getFullYear(); dateText = `${mm}/${dd}/${yyyy}`; } }catch(e){}
+        const valueText = (row.value !== undefined && row.value !== null) ? String(row.value) : '';
+        const labelText = (dateText ? dateText + ' - ' : '') + valueText + (meta?.units ? ' ' + meta.units : '');
+        a.textContent = labelText;
+        const li = document.createElement('li');
+        li.appendChild(a);
+        listEl.appendChild(li);
+      }
+      listEl.style.display = listEl.children.length ? '' : 'none';
     }
   }
 }
