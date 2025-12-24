@@ -27,3 +27,7 @@ footer{max-width:var(--max-width);margin:18px auto 0;color:var(--muted)}
   .card{grid-template-columns:1fr;}
   .video-wrap iframe{height:220px}
 }
+
+.video-list{margin:8px 0 0 18px}
+.video-list li a{color:#1473e6;text-decoration:none}
+.video-list li a:hover{text-decoration:underline}
