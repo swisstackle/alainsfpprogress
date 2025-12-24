@@ -220,16 +220,8 @@ function renderExerciseFromGrouped(key, grouped, meta){
       iframe.src = '';
     }
 
-    // locate or create the list element inside the video's parent wrap
+    // locate the list element inside the video's parent wrap (created in ensureSectionForExercise)
     let listEl = document.getElementById(`video-list-${key}`);
-    const videoWrapEl = iframe ? iframe.parentElement : null;
-    if(!listEl && videoWrapEl){
-      listEl = document.createElement('ul');
-      listEl.id = `video-list-${key}`;
-      listEl.className = 'video-list';
-      listEl.style.marginTop = '8px';
-      videoWrapEl.appendChild(listEl);
-    }
     if(listEl){
       listEl.innerHTML = '';
       let latestIndex = -1;
