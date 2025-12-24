@@ -1,4 +1,4 @@
-require('dotenv').config();
+//require('dotenv').config();
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
@@ -9,7 +9,6 @@ const Papa = require('papaparse');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-console.log('DATA_SOURCE_URL=', process.env.DATA_SOURCE_URL);
 const PUBLIC = path.join(__dirname);
 
 app.use(express.static(PUBLIC));
