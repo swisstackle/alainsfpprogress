@@ -231,16 +231,6 @@ function renderExerciseFromGrouped(key, grouped, meta){
       videoWrapEl.appendChild(listEl);
     }
     if(listEl){
-      // ensure a title above the list
-      const container = listEl.parentElement || videoWrapEl;
-      let titleEl = container.querySelector('.video-list-title');
-      if(!titleEl){
-        titleEl = document.createElement('div');
-        titleEl.className = 'video-list-title';
-        titleEl.textContent = 'Old datapoints';
-        container.insertBefore(titleEl, listEl);
-      }
-
       listEl.innerHTML = '';
       let latestIndex = -1;
       for(let i = data.length - 1; i >= 0; i--) if(data[i].youtubeId){ latestIndex = i; break; }
@@ -255,7 +245,7 @@ function renderExerciseFromGrouped(key, grouped, meta){
         a.rel = 'noopener';
         // format: DATE - VALUE UNIT
         let dateText = '';
-        try{ const d = new Date(row.ts); if(!isNaN(d)) dateText = d.toLocaleDateString(); }catch(e){}
+        try{ const d = new Date(row.ts); if(!isNaN(d)){ const mm = String(d.getMonth()+1).padStart(2,'0'); const dd = String(d.getDate()).padStart(2,'0'); const yyyy = d.getFullYear(); dateText = `${mm}/${dd}/${yyyy}`; } }catch(e){}
         const valueText = (row.value !== undefined && row.value !== null) ? String(row.value) : '';
         const labelText = (dateText ? dateText + ' - ' : '') + valueText + (meta?.units ? ' ' + meta.units : '');
         a.textContent = labelText;
